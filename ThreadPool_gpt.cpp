@@ -29,7 +29,7 @@ public:
 		}
 	}
 
-	// Ìá½»ÈÎÎñµ½Ïß³Ì³Ø
+	// æäº¤ä»»åŠ¡åˆ°çº¿ç¨‹æ± 
 	void enqueue(std::function<void()> task) {
 		{
 			std::unique_lock<std::mutex> lock(queueMutex);
@@ -37,12 +37,12 @@ public:
 				throw std::runtime_error("enqueue on stopped ThreadPool");
 			}
 			taskQueue.push(task);
-			++tasksRemaining;  // Ôö¼ÓÈÎÎñ¼ÆÊı
+			++tasksRemaining;  // å¢åŠ ä»»åŠ¡è®¡æ•°
 		}
 		cv.notify_one();
 	}
 
-	// µÈ´ıËùÓĞÈÎÎñÍê³É
+	// ç­‰å¾…æ‰€æœ‰ä»»åŠ¡å®Œæˆ
 	void waitForCompletion() {
 		std::unique_lock<std::mutex> lock(cvMutex);
 		cvFinished.wait(lock, [this]() { return tasksRemaining == 0; });
@@ -63,9 +63,9 @@ private:
 			task();
 			{
 				std::unique_lock<std::mutex> lock(cvMutex);
-				--tasksRemaining;  // Ö´ĞĞÍêÈÎÎñºó¼õÉÙ¼ÆÊı
+				--tasksRemaining;  // æ‰§è¡Œå®Œä»»åŠ¡åå‡å°‘è®¡æ•°
 			}
-			cvFinished.notify_one();  // Í¨ÖªÖ÷Ïß³Ì£¬ÈÎÎñÒÑ¾­Íê³É
+			cvFinished.notify_one();  // é€šçŸ¥ä¸»çº¿ç¨‹ï¼Œä»»åŠ¡å·²ç»å®Œæˆ
 		}
 	}
 
@@ -73,10 +73,10 @@ private:
 	std::queue<std::function<void()>> taskQueue;
 	std::mutex queueMutex;
 	std::condition_variable cv;
-	std::mutex cvMutex;  // ÓÃÓÚÈÎÎñ¼ÆÊıÆ÷µÄÌõ¼ş±äÁ¿
-	std::condition_variable cvFinished;  // ÓÃÓÚµÈ´ıËùÓĞÈÎÎñÍê³É
+	std::mutex cvMutex;  // ç”¨äºä»»åŠ¡è®¡æ•°å™¨çš„æ¡ä»¶å˜é‡
+	std::condition_variable cvFinished;  // ç”¨äºç­‰å¾…æ‰€æœ‰ä»»åŠ¡å®Œæˆ
 	bool stop;
-	int tasksRemaining;  // ÈÎÎñ¼ÆÊıÆ÷
+	int tasksRemaining;  // ä»»åŠ¡è®¡æ•°å™¨
 };
 
 class TaskExecutor {
@@ -102,7 +102,7 @@ public:
 		std::cout << "Executing v6 for object " << data[0] << "\n";
 	}
 
-	// µ÷¶ÈÈÎÎñ
+	// è°ƒåº¦ä»»åŠ¡
 /*	void execute(ThreadPool<TaskExecutor>& pool) {
 		pool.enqueue([&executor = *this]() { executor.v1(); });
 		pool.enqueue([&executor = *this]() { executor.v2(); });
@@ -127,19 +127,19 @@ private:
 };
 
 int main() {
-	// ¼ÙÉèÃ¿¸ö¶ÔÏóÊÇÒ»¸ö´øÓĞ±êÊ¶µÄ vector
+	// å‡è®¾æ¯ä¸ªå¯¹è±¡æ˜¯ä¸€ä¸ªå¸¦æœ‰æ ‡è¯†çš„ vector
 	std::vector<std::vector<int>> objects = { {1}, {2}, {3}, {4}, {5} };
 
-	// ´´½¨Ïß³Ì³Ø£¬¼ÙÉèÎÒÃÇÊ¹ÓÃ 4 ¸öÏß³Ì
+	// åˆ›å»ºçº¿ç¨‹æ± ï¼Œå‡è®¾æˆ‘ä»¬ä½¿ç”¨ 4 ä¸ªçº¿ç¨‹
 	ThreadPool<TaskExecutor> pool(4);
 
-	// ÎªÃ¿¸ö¶ÔÏóÖ´ĞĞÈÎÎñ
+	// ä¸ºæ¯ä¸ªå¯¹è±¡æ‰§è¡Œä»»åŠ¡
 	for (auto& obj : objects) {
 		TaskExecutor executor(obj);
 		executor.execute(pool);
 	}
 
-	// µÈ´ıÖ±µ½ËùÓĞÈÎÎñÍê³É
+	// ç­‰å¾…ç›´åˆ°æ‰€æœ‰ä»»åŠ¡å®Œæˆ
 	pool.waitForCompletion();
 
 	std::cout << "All tasks are complete.\n";
