@@ -2,9 +2,9 @@
 #include <thread>
 #include <string>
 #include <vector>
-#include <queue> // ¶ÓÁĞ
-#include <mutex> // »¥³âËø
-#include <condition_variable> // Ìõ¼ş±äÁ¿
+#include <queue> // é˜Ÿåˆ—
+#include <mutex> // äº’æ–¥é”
+#include <condition_variable> // æ¡ä»¶å˜é‡
 #include <functional>
 
 
@@ -17,26 +17,26 @@ public:
 		{
 			threads.emplace_back([this] {
 				while (1) {
-					// ¼ÓËø
+					// åŠ é”
 					std::unique_lock<std::mutex> lock(mtx);
-					// ÅĞ¶ÏÈÎÎñ¶ÓÁĞÊÇ·ñÓĞÈÎÎñ
+					// åˆ¤æ–­ä»»åŠ¡é˜Ÿåˆ—æ˜¯å¦æœ‰ä»»åŠ¡
 					condition.wait(lock, [this] {
 						return !tasks.empty() || stop;
 					});
-					// Ïß³ÌÖÕÖ¹£¬Ö±½Ó·µ»Ø
+					// çº¿ç¨‹ç»ˆæ­¢ï¼Œç›´æ¥è¿”å›
 					if (stop && tasks.empty())
 					{
 						return;
 					}
 
-					// ´ÓÈÎÎñ¶ÓÁĞ£¬È¡ÈÎÎñ
+					// ä»ä»»åŠ¡é˜Ÿåˆ—ï¼Œå–ä»»åŠ¡
 					std::function<void()> task(std::move(tasks.front()));
-					// ½«È¡×ßµÄÈÎÎñ£¬ÔÚÈÎÎñ¶ÓÁĞÉ¾³ı
+					// å°†å–èµ°çš„ä»»åŠ¡ï¼Œåœ¨ä»»åŠ¡é˜Ÿåˆ—åˆ é™¤
 					tasks.pop();
 
-					// ½âËø
+					// è§£é”
 					lock.unlock();
-					// Ö´ĞĞÈÎÎñ
+					// æ‰§è¡Œä»»åŠ¡
 					task();
 
 				}
@@ -47,12 +47,12 @@ public:
 
 	~ThreadPool() {
 		{
-			// ¼ÓËø
+			// åŠ é”
 			std::unique_lock<std::mutex> lock(mtx);
 			stop = true;
 		
 		}
-		// ËùÓĞÏß³Ì£¬°ÑÈÎÎñ¶ÓÁĞÀïÃæËùÓĞµÄÈÎÎñ¸øÍê³É
+		// æ‰€æœ‰çº¿ç¨‹ï¼ŒæŠŠä»»åŠ¡é˜Ÿåˆ—é‡Œé¢æ‰€æœ‰çš„ä»»åŠ¡ç»™å®Œæˆ
 		condition.notify_all();
 		for (auto & t :threads)
 		{
@@ -60,28 +60,28 @@ public:
 		}
 	}
 
-	// ÀûÓÃÄ£°å½øĞĞ
+	// åˆ©ç”¨æ¨¡æ¿è¿›è¡Œ
 	template<class F, class ... Args>
 	void enqueue(F && f, Args&&... args) {
-		// std::bindº¯ÊıÊÊÅäÆ÷£¬²ÎÊı°ó¶¨£»std::forwardÍêÃÀ×ª·¢,
+		// std::bindå‡½æ•°é€‚é…å™¨ï¼Œå‚æ•°ç»‘å®šï¼›std::forwardå®Œç¾è½¬å‘,
 		std::function<void()> task = std::bind(std::forward<F>(f), std::forward<Args> (args)...);
 		{
 			std::unique_lock<std::mutex> lock(mtx);
 			tasks.emplace(std::move(task));
 		}
-		// Í¨Öª
+		// é€šçŸ¥
 		condition.notify_one();
 
 	}
 
 private:
-	// Ïß³ÌÈİÆ÷
+	// çº¿ç¨‹å®¹å™¨
 	std::vector<std::thread> threads;
-	// ÈÎÎñ¶ÓÁĞ
+	// ä»»åŠ¡é˜Ÿåˆ—
 	std::queue<std::function<void()>> tasks;
-	// »¥³âËø
+	// äº’æ–¥é”
 	std::mutex mtx;
-	// Ìõ¼ş±äÁ¿
+	// æ¡ä»¶å˜é‡
 	std::condition_variable condition;
 
 	bool stop;
@@ -95,9 +95,9 @@ int main() {
 	for (int i = 0; i < 10; i++)
 	{
 		threadPool.enqueue([i] {
-			std::cout << "task:" << i <<"ÔËĞĞ"<< std::endl;
+			std::cout << "task:" << i <<"è¿è¡Œ"<< std::endl;
 			std::this_thread::sleep_for(std::chrono::seconds(1));
-			std::cout << "task:" << i << "½áÊø" << std::endl;
+			std::cout << "task:" << i << "ç»“æŸ" << std::endl;
 			});
 	}
 
